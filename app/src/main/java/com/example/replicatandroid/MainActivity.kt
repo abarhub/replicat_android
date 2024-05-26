@@ -83,78 +83,21 @@ class MainActivity : AppCompatActivity() {
         val queue = Volley.newRequestQueue(this)
         val url = "https://www.google.com"
 
-
         // Request a string response from the provided URL.
         val stringRequest = StringRequest(
             Request.Method.GET, url,
             { response -> // Display the first 500 characters of the response string.
                 //textView.setText("Response is: " + response.substring(0, 500))
-                Log.info("Response is: " + response.substring(0, 500))
+                Log.info("Response is: " + response.substring(0, Math.min(500,response.length)))
             }, {
                 //textView.setText("That didn't work!")
-                Log.warning("That didn't work!")
+                Log.warning("That didn't work! $it")
             })
 
 
 // Add the request to the RequestQueue.
         queue.add(stringRequest)
 
-        /*val request: StringRequest =
-            object : StringRequest(Request.Method.PUT, url, object : Response.Listener<String?> {
-                override fun onResponse(response: String?) {
-
-                    // hiding our progress bar.
-                    loadingPB.visibility = View.GONE
-
-                    // inside on response method we are
-                    // setting our edit text to empty.
-                    jobEdt.setText("")
-                    nameEdt.setText("")
-
-                    // on below line we are displaying a toast message as data updated.
-                    Toast.makeText(this@MainActivity, "Data Updated..", Toast.LENGTH_SHORT).show()
-                    try {
-                        // on below line we are extracting data from our json object
-                        // and passing our response to our json object.
-                        val jsonObject = JSONObject(response)
-
-                        // creating a string for our output.
-                        val result =
-                            "User Name : " + jsonObject.getString("name") + "\n" + "Job : " + jsonObject.getString(
-                                "job"
-                            ) + "\n" + "Updated At : " + jsonObject.getString("updatedAt")
-
-                        // on below line we are setting
-                        // our string to our text view.
-                        resultTV.setText(result)
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-                }
-            }, object : Response.ErrorListener {
-                override fun onErrorResponse(error: VolleyError?) {
-                    // displaying toast message on response failure.
-                    Log.e("tag", "error is " + error!!.message)
-                    Toast.makeText(this@MainActivity, "Fail to update data..", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }) {
-                override fun getParams(): Map<String, String>? {
-
-                    // below line we are creating a map for storing
-                    // our values in key and value pair.
-                    val params: MutableMap<String, String> = HashMap()
-
-                    // on below line we are passing our key
-                    // and value pair to our parameters.
-                    params["name"] = userName
-                    params["job"] = job
-
-                    // at last we are
-                    // returning our params.
-                    return params
-                }
-            }*/
     }
 
 }
