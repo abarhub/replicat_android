@@ -81,7 +81,9 @@ class MainActivity : AppCompatActivity() {
     fun appel(){
 
         val queue = Volley.newRequestQueue(this)
-        val url = "https://www.google.com"
+//        val url = "https://www.google.com"
+        val url = "http://10.0.2.2:7070"
+        Log.info("url=${url}")
 
         // Request a string response from the provided URL.
         val stringRequest = StringRequest(
