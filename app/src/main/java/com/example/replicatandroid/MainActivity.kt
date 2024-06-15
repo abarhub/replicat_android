@@ -1,14 +1,11 @@
 package com.example.replicatandroid
 
 import android.app.Activity
-import android.app.PendingIntent.getActivity
-import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,23 +25,34 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.replicatandroid.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.*
+import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Base64
-import java.util.Objects
 import java.util.Properties
 import java.util.logging.Logger
-import java.util.stream.Collectors
 import java.util.stream.Collectors.toList
 
+
+//import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+//import io.reactivex.rxjava3.core.Observable;
+//import io.reactivex.rxjava3.core.ObservableSource;
+//import io.reactivex.rxjava3.disposables.CompositeDisposable;
+//import io.reactivex.rxjava3.functions.Supplier;
+//import io.reactivex.rxjava3.observers.DisposableObserver;
+//import io.reactivex.rxjava3.schedulers.Schedulers;
+//
+//
+//import io.reactivex.Observable;
 
 @Serializable
 data class ListFiles(val filename: String, val size: Long)
@@ -134,6 +142,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun getListeFichiers(rep2: String) {
 
+//        Flowable.fromArray(1)
+
+//        Flowable.fromArray<Any>(args).subscribe { s: Any ->
+//            println(
+//                "Hello $s!"
+//            )
+//        }
+
+        val res=Observable.just("one", "two", "three", "four", "five")
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { s: Any ->
+                println("test $s")
+            }
+
+//         val queue:Queue<Int>;
+//        queue=LinkedBlockingQueue<Int>(1)
+
+//        viewModelScope.launch(Dispatchers.IO) {
+//
+//        }
+
+
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
             // Optionally, specify a URI for the directory that should be opened in
             // the system file picker when it loads.
@@ -179,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                             }
                             Log.info("listeFichiers=$listeFichiers")
 
-                            envoieListeFichiers()
+                            envoieListeFichiers(listeFichiers)
                         }
                     }
                 }
@@ -187,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun envoieListeFichiers() {
+    private fun envoieListeFichiers(listeFichiers: ArrayList<Files3>) {
         if(!listeFichiers.isEmpty()){
 
             val config=getConfig()
@@ -203,7 +234,7 @@ class MainActivity : AppCompatActivity() {
 
                 val liste =ArrayList<Files2>()
 
-                for(f in  listeFichiers){
+                for(f in listeFichiers){
                     liste.add(Files2(f.filename,f.size,f.hash,f.type))
                 }
 
@@ -317,8 +348,12 @@ class MainActivity : AppCompatActivity() {
         val liste = racine.listFiles()
         for(f in liste){
             if(f.name!=null) {
-                val f2 = Files3(f.name!!, f.length(), "", "", f)
-                listeFichiers.add(f2)
+                if(f.isDirectory){
+
+                } else {
+                    val f2 = Files3(f.name!!, f.length(), "", "F", f)
+                    listeFichiers.add(f2)
+                }
             }
         }
     }
@@ -330,7 +365,7 @@ class MainActivity : AppCompatActivity() {
         Log.info("liste=$liste")
         liste=liste.stream().filter{
             it.length>0
-        }.collect(Collectors.toList())
+        }.collect(toList())
         Log.info("liste2=$liste")
         return getFile4(doc,liste)
     }
@@ -557,20 +592,20 @@ class MainActivity : AppCompatActivity() {
         Log.info("liste=$liste")
         liste=liste.stream().filter{
             it.length>0
-        }.collect(Collectors.toList())
+        }.collect(toList())
         Log.info("liste2=$liste")
         return getFile2(doc,liste)
     }
 
     fun getFile2(doc:DocumentFile,path:List<String>): DocumentFile?{
         if(path.isEmpty()){
-            return null;
+            return null
         }
         val liste=doc.listFiles()
         for(tmp in liste){
-            if(tmp.name.equals(path.get(0))){
+            if(tmp.name.equals(path[0])){
                 if(path.size==1){
-                    return tmp;
+                    return tmp
                 } else {
                     val res= getFile2(tmp, path.subList(1, path.size))
                     if(res!=null){
