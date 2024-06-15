@@ -37,10 +37,12 @@ import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.security.MessageDigest
 import java.util.Base64
 import java.util.Properties
 import java.util.logging.Logger
 import java.util.stream.Collectors.toList
+import kotlin.text.Charsets.UTF_8
 
 
 //import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -202,9 +204,11 @@ class MainActivity : AppCompatActivity() {
 
                             Log.info("racine=$racine")
 
+                            val listeFichiers=ArrayList<Files3>()
+
                             if(racine!=null) {
                                 listeFichiers.clear()
-                                ajouteFichier(racine)
+                                ajouteFichier(racine, listeFichiers, "")
 //                                val liste = racine.listFiles()
 //                                listeFichiers.addAll(liste)
                             }
@@ -275,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                                         var res = ""
                                         val inputStream = contentResolver.openInputStream(f.doc.uri)
                                         if (inputStream != null) {
-                                            val input = InputStreamReader(inputStream)
+//                                            val input = InputStreamReader(inputStream)
                                             //                                        val reader = BufferedReader(InputStreamReader(inputStream))
                                             val outputStream = ByteArrayOutputStream()
                                             inputStream.use { input ->
@@ -344,21 +348,52 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun ajouteFichier(racine: DocumentFile) {
+    private fun ajouteFichier(racine: DocumentFile, listeFichiers: ArrayList<Files3>, parent: String) {
         val liste = racine.listFiles()
         for(f in liste){
             if(f.name!=null) {
                 if(f.isDirectory){
-
+                    ajouteFichier(f,listeFichiers,parent+"/"+f.name)
                 } else {
-                    val f2 = Files3(f.name!!, f.length(), "", "F", f)
+                    val content=readFile(f)
+                    val hash=hashString(content,"SHA-256")
+                    val f2 = Files3(parent+f.name!!, f.length(), hash.toHex(), "F", f)
                     listeFichiers.add(f2)
                 }
             }
         }
     }
 
-    val listeFichiers=ArrayList<Files3>()
+    fun readFile(f: DocumentFile): ByteArray {
+        val inputStream = contentResolver.openInputStream(f.uri)
+        if (inputStream != null) {
+//            val input = InputStreamReader(inputStream)
+            //                                        val reader = BufferedReader(InputStreamReader(inputStream))
+            val outputStream = ByteArrayOutputStream()
+            inputStream.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            //                                        inputStream.readAllBytes()
+            //                                        val lines = reader.readLines()
+            inputStream.close()
+            return outputStream.toByteArray()
+            //                                        res=String(outputStream.toByteArray())
+//            res = Base64.getEncoder()
+//                .encodeToString(outputStream.toByteArray())
+
+//            Log.info("content: $res")
+        }
+        return ByteArray(0)
+    }
+
+    fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byte) }
+
+    fun hashString(str: ByteArray, algorithm: String): ByteArray =
+        MessageDigest.getInstance(algorithm).digest(str)
+
+    //val listeFichiers=ArrayList<Files3>()
 
     fun getFile3(doc:DocumentFile,path:String): DocumentFile? {
         var liste=path.split("/");
