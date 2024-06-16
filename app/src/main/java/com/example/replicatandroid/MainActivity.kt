@@ -5,14 +5,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -25,24 +22,17 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.replicatandroid.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.*
-import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
-import java.io.InputStreamReader
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.MessageDigest
 import java.util.Base64
 import java.util.Properties
 import java.util.logging.Logger
 import java.util.stream.Collectors.toList
-import kotlin.text.Charsets.UTF_8
 
 
 //import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -78,14 +68,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val Log: Logger = Logger.getLogger(MainActivity::class.java.name)
 
-//    var apiRequestQueue: RequestQueue? =null;
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        apiRequestQueue = Volley.newRequestQueue(this@MainActivity);
-
-//        apiRequestQueue=Volley.newRequestQueue(createContext(null));
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -129,42 +113,18 @@ class MainActivity : AppCompatActivity() {
     fun addOne(view: View) {
         Log.warning("Hello World2")
         //txtCounter.text = (txtCounter.text.toString().toInt() + 1).toString()
-//        appel()
-        appel2()
+
+        getListeFichiers();
     }
 
-    fun appel2(){
+    private fun getListeFichiers() {
 
-        val config=getConfig()
-
-        Log.info("config=${config}")
-
-        getListeFichiers(config.rep2);
-    }
-
-    private fun getListeFichiers(rep2: String) {
-
-//        Flowable.fromArray(1)
-
-//        Flowable.fromArray<Any>(args).subscribe { s: Any ->
-//            println(
-//                "Hello $s!"
-//            )
-//        }
-
-        val res=Observable.just("one", "two", "three", "four", "five")
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { s: Any ->
-                println("test $s")
-            }
-
-//         val queue:Queue<Int>;
-//        queue=LinkedBlockingQueue<Int>(1)
-
-//        viewModelScope.launch(Dispatchers.IO) {
-//
-//        }
+//        val res=Observable.just("one", "two", "three", "four", "five")
+//            .subscribeOn(Schedulers.newThread())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe { s: Any ->
+//                println("test $s")
+//            }
 
 
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
@@ -187,39 +147,79 @@ class MainActivity : AppCompatActivity() {
             //doSomeOperations()
             Log.info("date: $data; ${data2?.data}")
 
-            if (data != null && data.data != null) {
-                val d: Uri? = data.data;
-                if (d != null) {
+            val config=getConfig()
 
-                    val config=getConfig()
+            val rep=config.rep2
 
-                    val rep=config.rep2
+            val listeFichier=listeFiles(rep,data)
 
-                    if(rep!=null&&rep.length>0){
+            if(listeFichier.isNotEmpty()){
+                envoieListeFichiers(listeFichier)
+            }
 
-                        val documentFile = DocumentFile.fromTreeUri(this, d)
+//            if (data != null && data.data != null) {
+//                val d: Uri? = data.data;
+//                if (d != null) {
+//
+//                    val config=getConfig()
+//
+//                    val rep=config.rep2
+//
+//                    if(rep!=null&&rep.length>0){
+//
+//                        val documentFile = DocumentFile.fromTreeUri(this, d)
+//
+//                        if(documentFile!=null) {
+//                            val racine=getFile(documentFile, rep)
+//
+//                            Log.info("racine=$racine")
+//
+//                            val listeFichiers=ArrayList<Files3>()
+//
+//                            if(racine!=null) {
+//                                listeFichiers.clear()
+//                                ajouteFichier(racine, listeFichiers, "")
+////                                val liste = racine.listFiles()
+////                                listeFichiers.addAll(liste)
+//                            }
+//                            Log.info("listeFichiers=$listeFichiers")
+//
+//                            envoieListeFichiers(listeFichiers)
+//                        }
+//                    }
+//                }
+//            }
+        }
+    }
 
-                        if(documentFile!=null) {
-                            val racine=getFile(documentFile, rep)
+    private fun listeFiles(repertoire:String, data: Intent?): ArrayList<Files3>{
+        if (data != null && data.data != null) {
+            val d: Uri? = data.data;
+            if (d != null) {
+                if (repertoire.isNotEmpty()) {
+                    val documentFile = DocumentFile.fromTreeUri(this, d)
+                    if (documentFile != null) {
+                        val racine = getFile(documentFile, repertoire)
 
-                            Log.info("racine=$racine")
+                        Log.info("racine=$racine")
 
-                            val listeFichiers=ArrayList<Files3>()
+                        val listeFichiers = ArrayList<Files3>()
 
-                            if(racine!=null) {
-                                listeFichiers.clear()
-                                ajouteFichier(racine, listeFichiers, "")
+                        if (racine != null) {
+                            listeFichiers.clear()
+                            ajouteFichier(racine, listeFichiers, "")
 //                                val liste = racine.listFiles()
 //                                listeFichiers.addAll(liste)
-                            }
-                            Log.info("listeFichiers=$listeFichiers")
-
-                            envoieListeFichiers(listeFichiers)
                         }
+                        Log.info("listeFichiers=$listeFichiers")
+
+//                envoieListeFichiers(listeFichiers)
+                        return listeFichiers
                     }
                 }
             }
         }
+        return java.util.ArrayList<Files3>()
     }
 
     private fun envoieListeFichiers(listeFichiers: ArrayList<Files3>) {
@@ -230,121 +230,180 @@ class MainActivity : AppCompatActivity() {
             if(config.serveur!=null&&config.serveur.trim().length>0) {
 
 
+
+
                 val queue = Volley.newRequestQueue(this)
-//        val url = "https://www.google.com"
-//            val url = "http://10.0.2.2:7070"
                 val url = config.serveur
                 Log.info("url=${url}")
 
-                val liste =ArrayList<Files2>()
 
-                for(f in listeFichiers){
-                    liste.add(Files2(f.filename,f.size,f.hash,f.type))
-                }
+                val stringRequest3 = object : StringRequest(
+                    Request.Method.POST, "$url/init",
+                    Response.Listener { response ->
 
-                val listFiles = ListFiles2(liste, "")
-                val json = Json.encodeToString(listFiles)
+                        val s=response
+                        Log.info("s=$s")
+                        if(s.isNotEmpty()){
 
-                val params = HashMap<String, String>()
-                params["data"] = json
-//                params["password"] = "password123"
+                            val no=s.toInt(10)
+                            if(no>0){
 
-                val stringRequest2 = object : StringRequest(
-                    Request.Method.POST, "$url/request3",
-                    Response.Listener { response -> // Display the first 500 characters of the response string.
-                        //textView.setText("Response is: " + response.substring(0, 500))
-                        Log.info(
-                            "Response2 is: " + response.substring(
-                                0,
-                                Math.min(500, response.length)
-                            )
-                        )
-
-                        //traitement(queue, config);
-
-                        val s2 = Json.decodeFromString<ListFiles2>(response)
-                        Log.info("s2 is $s2")
-
-                        if(s2!=null&&s2.liste!=null&&s2.liste.size>0){
-                            for(f0 in s2.liste){
-                                val file=f0
-                                if(file!=null&&file.filename!=null&&file.filename.length>0) {
-                                    val name = file.filename
-                                    val fOpt = listeFichiers.stream().filter {
-                                        it.filename.equals(name)
-                                    }.findAny()
-                                    if (fOpt.isPresent) {
-                                        val f = fOpt.get()
-
-                                        var res = ""
-                                        val inputStream = contentResolver.openInputStream(f.doc.uri)
-                                        if (inputStream != null) {
-//                                            val input = InputStreamReader(inputStream)
-                                            //                                        val reader = BufferedReader(InputStreamReader(inputStream))
-                                            val outputStream = ByteArrayOutputStream()
-                                            inputStream.use { input ->
-                                                outputStream.use { output ->
-                                                    input.copyTo(output)
-                                                }
-                                            }
-                                            //                                        inputStream.readAllBytes()
-                                            //                                        val lines = reader.readLines()
-                                            inputStream.close()
-                                            //                                        res=String(outputStream.toByteArray())
-                                            res = Base64.getEncoder()
-                                                .encodeToString(outputStream.toByteArray())
-
-                                            Log.info("content: $res")
-                                        }
-
-                                        val params2 = HashMap<String, String>()
-                                        params2["file"] = res
-                                        params2["filename"] = f.filename
-
-                                        val stringRequest3 = object : StringRequest(
-                                            Request.Method.POST, "$url/upload",
-                                            Response.Listener { response -> // Display the first 500 characters of the response string.
-                                                //textView.setText("Response is: " + response.substring(0, 500))
-                                                Log.info(
-                                                    "Response3 is: " + response.substring(
-                                                        0,
-                                                        Math.min(500, response.length)
-                                                    )
-                                                )
-
-                                            },
-                                            Response.ErrorListener {
-                                                //textView.setText("That didn't work!")
-                                                Log.warning("That didn't work3! $it")
-                                            }) {
-                                            override fun getParams(): Map<String, String> {
-                                                return params2
-                                            }
-                                        }
-
-                                        queue.add(stringRequest3)
-
-                                    }
-                                }
+                                Log.info("no=$no")
+                                traitement(no, listeFichiers, queue,url)
                             }
-                        } else {
-                            Log.info("no file to transfert")
+
                         }
 
                     },
                     Response.ErrorListener {
-                        //textView.setText("That didn't work!")
-                        Log.warning("That didn't work2! $it")
+                        Log.warning("That didn't work3! $it")
                     }) {
-                    override fun getParams(): Map<String, String> {
+                    /*override fun getParams(): Map<String, String> {
                         return params
-                    }
+                    }*/
                 }
 
-                queue.add(stringRequest2)
+                queue.add(stringRequest3)
+
+                // suite
+
+
+
 
             }
 
+        }
+    }
+
+    private fun traitement(
+        no: Int,
+        listeFichiers: ArrayList<Files3>,
+        queue: RequestQueue,
+        url: String
+    ){
+        val liste =ArrayList<Files2>()
+
+        for(f in listeFichiers){
+            liste.add(Files2(f.filename,f.size,f.hash,f.type))
+        }
+
+        val listFiles = ListFiles2(liste, "")
+        val json = Json.encodeToString(listFiles)
+
+        val params = HashMap<String, String>()
+        params["data"] = json
+
+        val stringRequest2 = object : StringRequest(
+            Request.Method.POST, "$url/listeFichiers/$no",
+            Response.Listener { response -> // Display the first 500 characters of the response string.
+                //textView.setText("Response is: " + response.substring(0, 500))
+                Log.info(
+                    "Response2 is: " + response.substring(
+                        0,
+                        Math.min(500, response.length)
+                    )
+                )
+
+
+                if(response.isNotEmpty()) {
+                    val s2 = Json.decodeFromString<ListFiles2>(response)
+                    Log.info("s2 is $s2")
+
+                    if (s2 != null && s2.liste != null && s2.liste.size > 0) {
+                        envoiListeFichiers(s2, listeFichiers, url, queue, no)
+                    } else {
+                        Log.info("no file to transfert")
+                    }
+                }
+
+            },
+            Response.ErrorListener {
+                Log.warning("That didn't work2! $it")
+            }) {
+            override fun getParams(): Map<String, String> {
+                return params
+            }
+        }
+
+        queue.add(stringRequest2)
+    }
+
+    private fun envoiListeFichiers(
+        s2: ListFiles2,
+        listeFichiers: ArrayList<Files3>,
+        url: String,
+        queue: RequestQueue,
+        no: Int
+    ) {
+
+        val listeFilename=listeFichiers.stream().map { it->it.filename }.collect(toList())
+        Log.info("liste des fichiers à transferer: $listeFilename")
+
+        for (f0 in s2.liste) {
+            val file = f0
+            if (file != null && file.filename != null && file.filename.length > 0) {
+                val name = file.filename
+                val fOpt = listeFichiers.stream().filter {
+                    it.filename.equals(name)
+                }.findAny()
+                if (fOpt.isPresent) {
+                    val f = fOpt.get()
+
+                    var res = ""
+                    val inputStream = contentResolver.openInputStream(f.doc.uri)
+                    if (inputStream != null) {
+    //                                            val input = InputStreamReader(inputStream)
+                        //                                        val reader = BufferedReader(InputStreamReader(inputStream))
+                        val outputStream = ByteArrayOutputStream()
+                        inputStream.use { input ->
+                            outputStream.use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        //                                        inputStream.readAllBytes()
+                        //                                        val lines = reader.readLines()
+                        inputStream.close()
+                        //                                        res=String(outputStream.toByteArray())
+                        res = Base64.getEncoder()
+                            .encodeToString(outputStream.toByteArray())
+
+                        //Log.info("content: $res")
+                    }
+
+                    val params2 = HashMap<String, String>()
+                    params2["file"] = res
+                    params2["filename"] = f.filename
+
+                    Log.info("Envoi du fichier ${f.filename}")
+
+                    val stringRequest3 = object : StringRequest(
+                        Method.POST, "$url/upload/$no",
+                        Response.Listener { response -> // Display the first 500 characters of the response string.
+                            //textView.setText("Response is: " + response.substring(0, 500))
+//                            Log.info(
+//                                "Response3 is: " + response.substring(
+//                                    0,
+//                                    Math.min(500, response.length)
+//                                )
+//                            )
+                            Log.info("Envoi du fichier ${f.filename} : "+response.substring(
+                                0,
+                                Math.min(500, response.length)))
+
+                        },
+                        Response.ErrorListener {
+                            //textView.setText("That didn't work!")
+                            Log.warning("That didn't work3! $it")
+                        }) {
+                        override fun getParams(): Map<String, String> {
+                            return params2
+                        }
+                    }
+
+                    queue.add(stringRequest3)
+
+                }
+            }
         }
     }
 
@@ -352,12 +411,18 @@ class MainActivity : AppCompatActivity() {
         val liste = racine.listFiles()
         for(f in liste){
             if(f.name!=null) {
+                val chemin:String
+                if (parent.isEmpty()){
+                    chemin=f.name!!
+                } else {
+                    chemin=parent+"/"+f.name
+                }
                 if(f.isDirectory){
-                    ajouteFichier(f,listeFichiers,parent+"/"+f.name)
+                    ajouteFichier(f,listeFichiers,chemin)
                 } else {
                     val content=readFile(f)
                     val hash=hashString(content,"SHA-256")
-                    val f2 = Files3(parent+f.name!!, f.length(), hash.toHex(), "F", f)
+                    val f2 = Files3(chemin, f.length(), hash.toHex(), "F", f)
                     listeFichiers.add(f2)
                 }
             }
@@ -417,201 +482,201 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun appel(){
-
-        val config=getConfig()
-//        val confFile="/sdcard/test1/test1/test1/test1/test1/config.txt";
-//        val properties=Properties();
-//        val input=Files.newInputStream(Paths.get(confFile));
-//        properties.load(input);
-        Log.info("config=${config}")
-
-        if(config.serveur!=null&&config.serveur.trim().length>0) {
-
-
-            val queue = Volley.newRequestQueue(this)
-//        val url = "https://www.google.com"
-//            val url = "http://10.0.2.2:7070"
-            val url = config.serveur
-            Log.info("url=${url}")
-
-            // Request a string response from the provided URL.
-            val stringRequest = StringRequest(
-                Request.Method.GET, url,
-                { response -> // Display the first 500 characters of the response string.
-                    //textView.setText("Response is: " + response.substring(0, 500))
-                    Log.info(
-                        "Response is: " + response.substring(
-                            0,
-                            Math.min(500, response.length)
-                        )
-                    )
-
-                    Log.info("suite...")
-
-                    val rep = Environment.getExternalStorageDirectory().path
-                    Log.info("rep=$rep")
-                    val p = Paths.get("$rep/test1/test1/abc.txt")
-
-                    openDirectory(Uri.EMPTY)
-
-                    if(false) {
-
-
-                        val len = Files.size(p);
-//                    val s=Files.readAllBytes(p)
-
-                        val listFiles = ListFiles(p.fileName.toString(), len)
-                        val json = Json.encodeToString(listFiles)
-
-                        val params = HashMap<String, String>()
-                        params["data"] = json
-//                params["password"] = "password123"
-
-                        val stringRequest2 = object : StringRequest(
-                            Request.Method.POST, "$url/request1",
-                            Response.Listener { response -> // Display the first 500 characters of the response string.
-                                //textView.setText("Response is: " + response.substring(0, 500))
-                                Log.info(
-                                    "Response2 is: " + response.substring(
-                                        0,
-                                        Math.min(500, response.length)
-                                    )
-                                )
-
-                                traitement(queue, config);
-
-                            },
-                            Response.ErrorListener {
-                                //textView.setText("That didn't work!")
-                                Log.warning("That didn't work2! $it")
-                            }) {
-                            override fun getParams(): Map<String, String> {
-                                return params
-                            }
-                        }
-
-                        queue.add(stringRequest2)
-
-                    }
-
-                }, {
-                    //textView.setText("That didn't work!")
-                    Log.warning("That didn't work! $it")
-                })
-
-
-// Add the request to the RequestQueue.
-            queue.add(stringRequest)
-
-        }
-    }
-
-    val RQS_OPEN_DOCUMENT_TREE=2;
-
-    fun openDirectory(pickerInitialUri: Uri) {
-        Log.info("openDirectory")
-        // Choose a directory using the system's file picker.
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            // Optionally, specify a URI for the directory that should be opened in
-            // the system file picker when it loads.
-            //putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
-        }
-
-        //startActivityForResult(intent, RQS_OPEN_DOCUMENT_TREE)
-        resultLauncher.launch(intent)
-//        registerFor
-    }
-
-    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            // There are no request codes
-            val data: Intent? = result.data
-            val data2=result.data
-            //doSomeOperations()
-            Log.info("date: $data; ${data2?.data}")
-
-            if(data!=null&&data.data!=null) {
-                val d:Uri?=data.data;
-                if(d!=null) {
-                    val documentFile = DocumentFile.fromTreeUri(this, d)
-                    for (file in documentFile!!.listFiles()) {
-                        if (file.isDirectory) { // if it is sub directory
-                            // Do stuff with sub directory
-                            Log.info("directory: ${file.uri}")
-                        } else {
-                            // Do stuff with normal file
-
-//                            file.
-//                            val contentResolver: ContentResolver =
-//                                getActivity().getContentResolver()
-//                            val docUri = DocumentsContract.buildDocumentUriUsingTree(
-//                                file.uri,
-//                                DocumentsContract.getTreeDocumentId(file.uri)
-//                            )
-
-                            val inputStream = contentResolver.openInputStream(file.uri)
-                            if(inputStream!=null) {
-                                val reader = BufferedReader(InputStreamReader(inputStream))
-                                val lines = reader.readLines()
-                                inputStream.close()
-                                Log.info("content: $lines")
-                            }
-                        }
-
-                        Log.info("Uri-> ${file.uri}")
-                    }
-
-                    Log.info("lecture fichier ...")
-                    val config=getConfig();
-                    // /sdcard/Documents/document/document/rep2/test7.txt
-                    var suite=""
-                    suite="/"+config.rep2+"/test7.txt"
-                    Log.info("suite: $suite")
-                    val doc2=getFile(documentFile,suite)
-                    //suite="%2Fdocument%2Fdocument%2Frep2%2Ftest7.txt"
-//                    val liste=documentFile.listFiles()
-//                    for(tmp in liste){
-//                        if(tmp.name.equals("document")){
+//    fun appel(){
 //
+//        val config=getConfig()
+////        val confFile="/sdcard/test1/test1/test1/test1/test1/config.txt";
+////        val properties=Properties();
+////        val input=Files.newInputStream(Paths.get(confFile));
+////        properties.load(input);
+//        Log.info("config=${config}")
+//
+//        if(config.serveur!=null&&config.serveur.trim().length>0) {
+//
+//
+//            val queue = Volley.newRequestQueue(this)
+////        val url = "https://www.google.com"
+////            val url = "http://10.0.2.2:7070"
+//            val url = config.serveur
+//            Log.info("url=${url}")
+//
+//            // Request a string response from the provided URL.
+//            val stringRequest = StringRequest(
+//                Request.Method.GET, url,
+//                { response -> // Display the first 500 characters of the response string.
+//                    //textView.setText("Response is: " + response.substring(0, 500))
+//                    Log.info(
+//                        "Response is: " + response.substring(
+//                            0,
+//                            Math.min(500, response.length)
+//                        )
+//                    )
+//
+//                    Log.info("suite...")
+//
+//                    val rep = Environment.getExternalStorageDirectory().path
+//                    Log.info("rep=$rep")
+//                    val p = Paths.get("$rep/test1/test1/abc.txt")
+//
+//                    openDirectory(Uri.EMPTY)
+//
+//                    if(false) {
+//
+//
+//                        val len = Files.size(p);
+////                    val s=Files.readAllBytes(p)
+//
+//                        val listFiles = ListFiles(p.fileName.toString(), len)
+//                        val json = Json.encodeToString(listFiles)
+//
+//                        val params = HashMap<String, String>()
+//                        params["data"] = json
+////                params["password"] = "password123"
+//
+//                        val stringRequest2 = object : StringRequest(
+//                            Request.Method.POST, "$url/request1",
+//                            Response.Listener { response -> // Display the first 500 characters of the response string.
+//                                //textView.setText("Response is: " + response.substring(0, 500))
+//                                Log.info(
+//                                    "Response2 is: " + response.substring(
+//                                        0,
+//                                        Math.min(500, response.length)
+//                                    )
+//                                )
+//
+//                                traitement(queue, config);
+//
+//                            },
+//                            Response.ErrorListener {
+//                                //textView.setText("That didn't work!")
+//                                Log.warning("That didn't work2! $it")
+//                            }) {
+//                            override fun getParams(): Map<String, String> {
+//                                return params
+//                            }
 //                        }
 //
+//                        queue.add(stringRequest2)
+//
 //                    }
-//                    val uri=documentFile.uri.toString()+suite
-                    if(doc2!=null) {
-                        val uri = doc2.uri
-                        Log.info("Fichier: $uri")
-                        if (uri != null) {
-//                            val uri2 = Uri.parse(uri)
-                            Log.info("Fichier2: $uri")
-//                        val documentFile2 = DocumentFile.fromTreeUri(this, uri2)
-                            val size=doc2.length()
-                            val lastMod=doc2.lastModified()
-                            Log.info("len: $size; lastMod: $lastMod")
-                            val inputStream = contentResolver.openInputStream(uri)
-                            if (inputStream != null) {
-                                val reader = BufferedReader(InputStreamReader(inputStream))
-                                val lines = reader.readLines()
-                                inputStream.close()
-                                Log.info("content2: $lines")
-                            }
-                        }
-                    } else {
-                        Log.info("pas de doc")
-                    }
-                }
-            }
+//
+//                }, {
+//                    //textView.setText("That didn't work!")
+//                    Log.warning("That didn't work! $it")
+//                })
+//
+//
+//// Add the request to the RequestQueue.
+//            queue.add(stringRequest)
+//
+//        }
+//    }
 
-//            if(data2!=null&&data2.data!=null) {
-//                val f = File (data2.data?.path)
-//                val tab=f.list()
-//                Log.info("liste=$tab")
-//                if(tab!=null&&tab.size>0){
-////                    tab[0]
+//    val RQS_OPEN_DOCUMENT_TREE=2;
+//
+//    fun openDirectory(pickerInitialUri: Uri) {
+//        Log.info("openDirectory")
+//        // Choose a directory using the system's file picker.
+//        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+//            // Optionally, specify a URI for the directory that should be opened in
+//            // the system file picker when it loads.
+//            //putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+//        }
+//
+//        //startActivityForResult(intent, RQS_OPEN_DOCUMENT_TREE)
+//        resultLauncher.launch(intent)
+////        registerFor
+//    }
+
+//    var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+//        if (result.resultCode == Activity.RESULT_OK) {
+//            // There are no request codes
+//            val data: Intent? = result.data
+//            val data2=result.data
+//            //doSomeOperations()
+//            Log.info("date: $data; ${data2?.data}")
+//
+//            if(data!=null&&data.data!=null) {
+//                val d:Uri?=data.data;
+//                if(d!=null) {
+//                    val documentFile = DocumentFile.fromTreeUri(this, d)
+//                    for (file in documentFile!!.listFiles()) {
+//                        if (file.isDirectory) { // if it is sub directory
+//                            // Do stuff with sub directory
+//                            Log.info("directory: ${file.uri}")
+//                        } else {
+//                            // Do stuff with normal file
+//
+////                            file.
+////                            val contentResolver: ContentResolver =
+////                                getActivity().getContentResolver()
+////                            val docUri = DocumentsContract.buildDocumentUriUsingTree(
+////                                file.uri,
+////                                DocumentsContract.getTreeDocumentId(file.uri)
+////                            )
+//
+//                            val inputStream = contentResolver.openInputStream(file.uri)
+//                            if(inputStream!=null) {
+//                                val reader = BufferedReader(InputStreamReader(inputStream))
+//                                val lines = reader.readLines()
+//                                inputStream.close()
+//                                Log.info("content: $lines")
+//                            }
+//                        }
+//
+//                        Log.info("Uri-> ${file.uri}")
+//                    }
+//
+//                    Log.info("lecture fichier ...")
+//                    val config=getConfig();
+//                    // /sdcard/Documents/document/document/rep2/test7.txt
+//                    var suite=""
+//                    suite="/"+config.rep2+"/test7.txt"
+//                    Log.info("suite: $suite")
+//                    val doc2=getFile(documentFile,suite)
+//                    //suite="%2Fdocument%2Fdocument%2Frep2%2Ftest7.txt"
+////                    val liste=documentFile.listFiles()
+////                    for(tmp in liste){
+////                        if(tmp.name.equals("document")){
+////
+////                        }
+////
+////                    }
+////                    val uri=documentFile.uri.toString()+suite
+//                    if(doc2!=null) {
+//                        val uri = doc2.uri
+//                        Log.info("Fichier: $uri")
+//                        if (uri != null) {
+////                            val uri2 = Uri.parse(uri)
+//                            Log.info("Fichier2: $uri")
+////                        val documentFile2 = DocumentFile.fromTreeUri(this, uri2)
+//                            val size=doc2.length()
+//                            val lastMod=doc2.lastModified()
+//                            Log.info("len: $size; lastMod: $lastMod")
+//                            val inputStream = contentResolver.openInputStream(uri)
+//                            if (inputStream != null) {
+//                                val reader = BufferedReader(InputStreamReader(inputStream))
+//                                val lines = reader.readLines()
+//                                inputStream.close()
+//                                Log.info("content2: $lines")
+//                            }
+//                        }
+//                    } else {
+//                        Log.info("pas de doc")
+//                    }
 //                }
 //            }
-        }
-    }
+//
+////            if(data2!=null&&data2.data!=null) {
+////                val f = File (data2.data?.path)
+////                val tab=f.list()
+////                Log.info("liste=$tab")
+////                if(tab!=null&&tab.size>0){
+//////                    tab[0]
+////                }
+////            }
+//        }
+//    }
 
     fun getFile(doc:DocumentFile,path:String): DocumentFile? {
         var liste=path.split("/");
@@ -673,139 +738,139 @@ class MainActivity : AppCompatActivity() {
         return Config(serveur,rep,rep2)
     }
 
-    fun traitement(queue: RequestQueue, config: Config) {
-        val rep=Paths.get(config.rep)
-        if(Files.exists(rep)&&Files.isDirectory(rep)&&false) {
+//    fun traitement(queue: RequestQueue, config: Config) {
+//        val rep=Paths.get(config.rep)
+//        if(Files.exists(rep)&&Files.isDirectory(rep)&&false) {
+//
+//            Log.info("debut")
+//            val url = config.serveur
+//            Log.info("url=${url}")
+//            Log.info("rep=${rep}")
+//
+//            val liste3=rep.toFile().listFiles()
+//            Log.info("liste3=$liste3")
+//            val liste2= ArrayList<Files2>()
+//            val stream=Files.list(rep)
+//            try {
+//                val liste1=stream.collect(toList())
+//                Log.info("debut boucle")
+//                for(f in liste1){
+//                    val isDir=Files.isDirectory(f)
+//                    val type=if(isDir) "D" else "F"
+//                    liste2.add(Files2(f.fileName.toString(),Files.size(f),"", type))
+//                    Log.info("ajout de ${liste2.last()}")
+//                }
+//                Log.info("fin boucle")
+//            } finally {
+//                stream.close()
+//            }
+//            val f2=rep.resolve("abc.txt");
+//            Log.info("read file $f2")
+//
+//            val res=checkPermission(f2)
+//
+////            val res=Files.readAllBytes(f2)
+//            Log.info("read file res: $res")
+//
+//            val listeFiles=ListFiles2(liste2,"aa")
+//
+//            val json = Json.encodeToString(listeFiles)
+//
+//            val params = HashMap<String, String>()
+//            params["listFiles"] = json
+//
+//            val stringRequest2 = object : StringRequest(
+//                Request.Method.POST, "$url/request2",
+//                Response.Listener { response -> // Display the first 500 characters of the response string.
+//                    //textView.setText("Response is: " + response.substring(0, 500))
+//                    Log.info(
+//                        "Response2 is: " + response.substring(
+//                            0,
+//                            Math.min(500, response.length)
+//                        )
+//                    )
+//
+//                    //traitement(queue, config);
+//
+//                },
+//                Response.ErrorListener {
+//                    //textView.setText("That didn't work!")
+//                    Log.warning("That didn't work3! $it")
+//                }) {
+//                override fun getParams(): Map<String, String> {
+//                    return params
+//                }
+//            }
+//
+//            queue.add(stringRequest2)
+//
+//            Log.info("fin")
+//        } else {
+//            Log.warning("le chemion $rep n'est pas un répertoire")
+//        }
+//    }
 
-            Log.info("debut")
-            val url = config.serveur
-            Log.info("url=${url}")
-            Log.info("rep=${rep}")
-
-            val liste3=rep.toFile().listFiles()
-            Log.info("liste3=$liste3")
-            val liste2= ArrayList<Files2>()
-            val stream=Files.list(rep)
-            try {
-                val liste1=stream.collect(toList())
-                Log.info("debut boucle")
-                for(f in liste1){
-                    val isDir=Files.isDirectory(f)
-                    val type=if(isDir) "D" else "F"
-                    liste2.add(Files2(f.fileName.toString(),Files.size(f),"", type))
-                    Log.info("ajout de ${liste2.last()}")
-                }
-                Log.info("fin boucle")
-            } finally {
-                stream.close()
-            }
-            val f2=rep.resolve("abc.txt");
-            Log.info("read file $f2")
-
-            val res=checkPermission(f2)
-
-//            val res=Files.readAllBytes(f2)
-            Log.info("read file res: $res")
-
-            val listeFiles=ListFiles2(liste2,"aa")
-
-            val json = Json.encodeToString(listeFiles)
-
-            val params = HashMap<String, String>()
-            params["listFiles"] = json
-
-            val stringRequest2 = object : StringRequest(
-                Request.Method.POST, "$url/request2",
-                Response.Listener { response -> // Display the first 500 characters of the response string.
-                    //textView.setText("Response is: " + response.substring(0, 500))
-                    Log.info(
-                        "Response2 is: " + response.substring(
-                            0,
-                            Math.min(500, response.length)
-                        )
-                    )
-
-                    //traitement(queue, config);
-
-                },
-                Response.ErrorListener {
-                    //textView.setText("That didn't work!")
-                    Log.warning("That didn't work3! $it")
-                }) {
-                override fun getParams(): Map<String, String> {
-                    return params
-                }
-            }
-
-            queue.add(stringRequest2)
-
-            Log.info("fin")
-        } else {
-            Log.warning("le chemion $rep n'est pas un répertoire")
-        }
-    }
-
-    private fun checkPermission(p: Path):String {
-//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_READ_EXTERNAL_STORAGE)
-        if(true){
-            Log.info("permission ...")
-//            Log.info("lecture2 ...")
-//            val res=Files.readAllBytes(p)
-//            Log.info("lecture2 ok")
-//            return String(res)
-            permission2()
-            return readFile()
-        } else {
-            // L'autorisation est déjà accordée, vous pouvez accéder à la carte SD
-            Log.info("sans permission ...")
-//            accessExternalStorage()
-//            Log.info("lecture ...")
-//            val res=Files.readAllBytes(p)
-//            Log.info("lecture ok")
-//            return String(res)
-            return readFile()
-        }
-    }
-
-    private fun permission2(){
-//        val permissionsCode = REQUEST_READ_EXTERNAL_STORAGE
-        val permissionsCode = 42
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
-                    //,android.Manifest.permission.READ_MEDIA_IMAGES
-                ), permissionsCode)
-            Log.info("permission2 ...")
-//            Log.info("lecture2 ...")
-//            val res=Files.readAllBytes(p)
-//            Log.info("lecture2 ok")
-//            return String(res)
+//    private fun checkPermission(p: Path):String {
+////        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+////            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_READ_EXTERNAL_STORAGE)
+//        if(true){
+//            Log.info("permission ...")
+////            Log.info("lecture2 ...")
+////            val res=Files.readAllBytes(p)
+////            Log.info("lecture2 ok")
+////            return String(res)
 //            permission2()
-            val s= readFile()
-            Log.info("s=${s.length}")
-        } else {
-            // L'autorisation est déjà accordée, vous pouvez accéder à la carte SD
-            Log.info("sans permission2 ...")
-//            accessExternalStorage()
-//            Log.info("lecture ...")
-//            val res=Files.readAllBytes(p)
-//            Log.info("lecture ok")
-//            return String(res)
 //            return readFile()
-        }
-    }
+//        } else {
+//            // L'autorisation est déjà accordée, vous pouvez accéder à la carte SD
+//            Log.info("sans permission ...")
+////            accessExternalStorage()
+////            Log.info("lecture ...")
+////            val res=Files.readAllBytes(p)
+////            Log.info("lecture ok")
+////            return String(res)
+//            return readFile()
+//        }
+//    }
 
-    private fun readFile():String {
-        //val p=Environment.getExternalStorageDirectory().resolve("test1/test1/test1/test1/abc.txt").toPath()
-        val p=Environment.getExternalStorageDirectory().resolve("Documents/document/text1.txt").toPath()
-        Log.info("file=$p")
-        Log.info("lecture ...")
-        val res=Files.readAllBytes(p)
-        Log.info("lecture ok")
-        return String(res)
-    }
+//    private fun permission2(){
+////        val permissionsCode = REQUEST_READ_EXTERNAL_STORAGE
+//        val permissionsCode = 42
+//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.MANAGE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this,
+//                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE,
+//                    android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
+//                    //,android.Manifest.permission.READ_MEDIA_IMAGES
+//                ), permissionsCode)
+//            Log.info("permission2 ...")
+////            Log.info("lecture2 ...")
+////            val res=Files.readAllBytes(p)
+////            Log.info("lecture2 ok")
+////            return String(res)
+////            permission2()
+//            val s= readFile()
+//            Log.info("s=${s.length}")
+//        } else {
+//            // L'autorisation est déjà accordée, vous pouvez accéder à la carte SD
+//            Log.info("sans permission2 ...")
+////            accessExternalStorage()
+////            Log.info("lecture ...")
+////            val res=Files.readAllBytes(p)
+////            Log.info("lecture ok")
+////            return String(res)
+////            return readFile()
+//        }
+//    }
+
+//    private fun readFile():String {
+//        //val p=Environment.getExternalStorageDirectory().resolve("test1/test1/test1/test1/abc.txt").toPath()
+//        val p=Environment.getExternalStorageDirectory().resolve("Documents/document/text1.txt").toPath()
+//        Log.info("file=$p")
+//        Log.info("lecture ...")
+//        val res=Files.readAllBytes(p)
+//        Log.info("lecture ok")
+//        return String(res)
+//    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
