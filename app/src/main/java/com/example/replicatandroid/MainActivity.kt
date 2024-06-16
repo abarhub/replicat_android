@@ -375,15 +375,8 @@ class MainActivity : AppCompatActivity() {
                     input.copyTo(output)
                 }
             }
-            //                                        inputStream.readAllBytes()
-            //                                        val lines = reader.readLines()
             inputStream.close()
             return outputStream.toByteArray()
-            //                                        res=String(outputStream.toByteArray())
-//            res = Base64.getEncoder()
-//                .encodeToString(outputStream.toByteArray())
-
-//            Log.info("content: $res")
         }
         return ByteArray(0)
     }
@@ -392,8 +385,6 @@ class MainActivity : AppCompatActivity() {
 
     fun hashString(str: ByteArray, algorithm: String): ByteArray =
         MessageDigest.getInstance(algorithm).digest(str)
-
-    //val listeFichiers=ArrayList<Files3>()
 
     fun getFile3(doc:DocumentFile,path:String): DocumentFile? {
         var liste=path.split("/");
