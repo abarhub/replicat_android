@@ -113,6 +113,7 @@ class MainActivity : AppCompatActivity() {
     fun addOne(view: View) {
         Log.warning("Hello World2")
         //txtCounter.text = (txtCounter.text.toString().toInt() + 1).toString()
+        val f=this.applicationContext.filesDir
 
         getListeFichiers();
     }
@@ -727,7 +728,9 @@ class MainActivity : AppCompatActivity() {
     fun getConfig(): Config{
 
 //        val confFile="/data/data/com.example.myapplication/test_android/config.properties";
-        val confFile= this.getFilesDir().getPath()+"/test_android/config.properties"
+        val confFile= this.filesDir.path +"/test_android/config.properties"
+        //val confFile=this.applicationContext.filesDir.path+"/test_android/config.properties"
+        Log.info("config: $confFile")
         val properties=Properties();
         val input=Files.newInputStream(Paths.get(confFile));
         properties.load(input);

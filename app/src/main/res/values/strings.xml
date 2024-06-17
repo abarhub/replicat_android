@@ -11,7 +11,13 @@
         Test.
     </string>
 
+    <string name="text">
+        Un test très simple
+        sur plusieurs lignes
+    </string>
+
     <string name="increment_by_one">increment</string>
 
     <string name="number_zero">0</string>
+    <string name="save">Sauver</string>
 </resources>
