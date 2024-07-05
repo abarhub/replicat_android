@@ -103,16 +103,21 @@ class SecondFragment : Fragment() {
     }
 
     private fun getFileContent(): String? {
-        if(this.context!=null) {
+        if(this.context!=null&&this.context?.filesDir?.path!=null) {
             val confFile = this.context?.filesDir?.path + "/test_android/config.properties"
             Log.info("config: $confFile")
-            val properties = Properties();
-            val input = Files.readAllLines(Paths.get(confFile), StandardCharsets.UTF_8);
+            val f=Paths.get(confFile)
+            if(Files.exists(f)&&Files.isRegularFile(f)) {
+//            val properties = Properties();
+                val input = Files.readAllLines(f, StandardCharsets.UTF_8);
 //            properties.load(input);
 
 //            input.close()
-            val s= input.stream().collect(Collectors.joining("\n"))
-            return s
+                val s = input.stream().collect(Collectors.joining("\n"))
+                return s
+            } else {
+                return null
+            }
         } else {
             return null
         }
@@ -122,17 +127,22 @@ class SecondFragment : Fragment() {
 
 //        val confFile="/data/data/com.example.myapplication/test_android/config.properties";
 //        val confFile= this.filesDir.path +"/test_android/config.properties"
-        if(this.context!=null) {
+        if(this.context!=null&&this.context?.filesDir?.path!=null) {
             val confFile = this.context?.filesDir?.path + "/test_android/config.properties"
             Log.info("config: $confFile")
-            val properties = Properties();
-            val input = Files.newInputStream(Paths.get(confFile));
-            properties.load(input);
-            input.close()
-            val serveur = properties.getProperty("serveur", "")
-            val rep = properties.getProperty("rep1", "")
-            val rep2 = properties.getProperty("rep2", "")
-            return Config(serveur, rep, rep2)
+            val f=Paths.get(confFile)
+            if(Files.exists(f)&&Files.isRegularFile(f)) {
+                val properties = Properties();
+                val input = Files.newInputStream(f);
+                properties.load(input);
+                input.close()
+                val serveur = properties.getProperty("serveur", "")
+                val rep = properties.getProperty("rep1", "")
+                val rep2 = properties.getProperty("rep2", "")
+                return Config(serveur, rep, rep2)
+            } else {
+                return null
+            }
         } else {
             return null
         }
