@@ -151,9 +151,11 @@ class MainActivity : AppCompatActivity() {
             val config=getConfig()
 
             val rep=config.rep2
+            Log.info("rep: $rep")
 
             val listeFichier=listeFiles(rep,data)
 
+            Log.info("listeFichier not empty: ${listeFichier.isNotEmpty()}")
             if(listeFichier.isNotEmpty()){
                 envoieListeFichiers(listeFichier)
             }
@@ -194,11 +196,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun listeFiles(repertoire:String, data: Intent?): ArrayList<Files3>{
+        Log.info("listeFiles...")
+        Log.info("data.data : $data;${data?.data}")
         if (data != null && data.data != null) {
             val d: Uri? = data.data;
             if (d != null) {
-                if (repertoire.isNotEmpty()) {
+                Log.info("repertoire not empty : ${repertoire.isNotEmpty()}")
+                Log.info("repertoire : ;${repertoire}!")
+                if (repertoire.isNotEmpty()||true) {
                     val documentFile = DocumentFile.fromTreeUri(this, d)
+                    Log.info("documentFile : ${documentFile != null}")
                     if (documentFile != null) {
                         val racine = getFile(documentFile, repertoire)
 
@@ -410,6 +417,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun ajouteFichier(racine: DocumentFile, listeFichiers: ArrayList<Files3>, parent: String) {
         val liste = racine.listFiles()
+        Log.info("ajouteFichier liste : $racine;${liste}")
         for(f in liste){
             if(f.name!=null) {
                 val chemin:String
