@@ -207,7 +207,8 @@ class MainActivity : AppCompatActivity() {
                     val documentFile = DocumentFile.fromTreeUri(this, d)
                     Log.info("documentFile : ${documentFile != null}")
                     if (documentFile != null) {
-                        val racine = getFile(documentFile, repertoire)
+                        //val racine = getFile(documentFile, repertoire)
+                        val racine=documentFile
 
                         Log.info("racine=$racine")
 
@@ -698,10 +699,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun getFile2(doc:DocumentFile,path:List<String>): DocumentFile?{
-        if(path.isEmpty()){
+        if(path.isEmpty()&&false){
             return null
         }
         val liste=doc.listFiles()
+        if (liste.isEmpty()){
+            return null;
+        } else {
+            return liste.get(0)
+        }
         for(tmp in liste){
             if(tmp.name.equals(path[0])){
                 if(path.size==1){
