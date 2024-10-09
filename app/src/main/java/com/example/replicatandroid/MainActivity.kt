@@ -59,6 +59,9 @@ data class Files2(val filename: String, val size: Long, val hash: String, val ty
 @Serializable
 data class ListFiles2(val liste: List<Files2>, val code: String)
 
+@Serializable
+data class Init(val noSauve: Int)
+
 data class Files3(
     val filename: String,
     val size: Long,
@@ -153,7 +156,7 @@ class MainActivity : AppCompatActivity() {
 //            }
 
         val preferences = getSharedPreferences(preferenceName(noSauvegarde), MODE_PRIVATE)
-        val uriString: String? = preferences.getString("tree_uri", null)
+        val uriString: String? = preferences.getString(param(noSauvegarde), null)
         var treeUriStr: Uri? = null;
         if (uriString != null) {
             val treeUri = Uri.parse(uriString)
@@ -168,8 +171,10 @@ class MainActivity : AppCompatActivity() {
             //putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
             //putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOCUMENTS)
             if (treeUriStr != null) {
+                Log.info("Intent avec uri  : ${treeUriStr}")
                 putExtra(DocumentsContract.EXTRA_INITIAL_URI, treeUriStr)
             } else {
+                Log.info("Intent avec document")
                 putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOCUMENTS)
             }
         }
@@ -186,10 +191,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun preferenceName(no: Int): String {
+        return "your_app_prefs"
+    }
+
+    private fun param(no: Int): String {
         if (no == 1) {
-            return "your_app_prefs";
+            return "tree_uri";
         } else {
-            return "your_app_prefs" + no;
+            return "tree_uri" + no;
         }
     }
 
@@ -224,7 +233,7 @@ class MainActivity : AppCompatActivity() {
             Log.info("rep: $rep")
 
             val preferences = getSharedPreferences(preferenceName(noSauvegarde), MODE_PRIVATE)
-            val uriString: String? = preferences.getString("tree_uri", null)
+            val uriString: String? = preferences.getString(param(noSauvegarde), null)
             if (uriString != null) {
                 val treeUri = Uri.parse(uriString)
                 // Utilisez treeUri pour accéder aux fichiers dans le répertoire
@@ -233,7 +242,7 @@ class MainActivity : AppCompatActivity() {
             if (data2?.data != null) {
                 var treeUri = data2?.data
                 val editor = preferences.edit()
-                editor.putString("tree_uri", treeUri.toString())
+                editor.putString(param(noSauvegarde), treeUri.toString())
                 editor.apply()
                 Log.info("sauvegarde de : ${treeUri.toString()}")
             }
@@ -242,7 +251,7 @@ class MainActivity : AppCompatActivity() {
 
             Log.info("listeFichier not empty: ${listeFichier.isNotEmpty()}")
             if (listeFichier.isNotEmpty()) {
-                envoieListeFichiers(listeFichier)
+                envoieListeFichiers(listeFichier,noSauvegarde)
             }
 
 //            if (data != null && data.data != null) {
@@ -316,7 +325,7 @@ class MainActivity : AppCompatActivity() {
         return java.util.ArrayList<Files3>()
     }
 
-    private fun envoieListeFichiers(listeFichiers: ArrayList<Files3>) {
+    private fun envoieListeFichiers(listeFichiers: ArrayList<Files3>, noSauvegarde: Int) {
         if (!listeFichiers.isEmpty()) {
 
             val config = getConfig()
@@ -328,6 +337,12 @@ class MainActivity : AppCompatActivity() {
                 val url = config.serveur
                 Log.info("url=${url}")
 
+
+                val init=Init(1)
+                val json = Json.encodeToString(init)
+
+                val params = HashMap<String, String>()
+                params["data"] = json
 
                 val stringRequest3 = object : StringRequest(
                     Request.Method.POST, "$url/init",
@@ -350,9 +365,9 @@ class MainActivity : AppCompatActivity() {
                     Response.ErrorListener {
                         Log.warning("That didn't work3! $it")
                     }) {
-                    /*override fun getParams(): Map<String, String> {
+                    override fun getParams(): Map<String, String> {
                         return params
-                    }*/
+                    }
                 }
 
                 queue.add(stringRequest3)
