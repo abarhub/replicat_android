@@ -5,9 +5,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.DocumentsContract
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
@@ -51,14 +54,20 @@ data class ListFiles(val filename: String, val size: Long)
 
 
 @Serializable
-data class Files2(val filename: String, val size: Long, val hash: String, val type:String)
+data class Files2(val filename: String, val size: Long, val hash: String, val type: String)
 
 @Serializable
 data class ListFiles2(val liste: List<Files2>, val code: String)
 
-data class Files3(val filename: String, val size: Long, val hash: String, val type:String,val doc:DocumentFile)
+data class Files3(
+    val filename: String,
+    val size: Long,
+    val hash: String,
+    val type: String,
+    val doc: DocumentFile
+)
 
-data class Config(val serveur: String, val rep:String, val rep2:String)
+data class Config(val serveur: String, val rep: String, val rep2: String)
 
 private val REQUEST_READ_EXTERNAL_STORAGE = 1
 
@@ -110,15 +119,31 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun addOne(view: View) {
-        Log.warning("Hello World2")
+    fun sauveUn(view: View) {
+        Log.warning("Hello World1")
         //txtCounter.text = (txtCounter.text.toString().toInt() + 1).toString()
-        val f=this.applicationContext.filesDir
+        val f = this.applicationContext.filesDir
 
-        getListeFichiers();
+        getListeFichiers(1);
     }
 
-    private fun getListeFichiers() {
+    fun sauveDeux(view: View) {
+        Log.warning("Hello World2")
+        //txtCounter.text = (txtCounter.text.toString().toInt() + 1).toString()
+        val f = this.applicationContext.filesDir
+
+        getListeFichiers(2);
+    }
+
+    fun sauveTrois(view: View) {
+        Log.warning("Hello World3")
+        //txtCounter.text = (txtCounter.text.toString().toInt() + 1).toString()
+        val f = this.applicationContext.filesDir
+
+        getListeFichiers(3);
+    }
+
+    private fun getListeFichiers(noSauvegarde: Int) {
 
 //        val res=Observable.just("one", "two", "three", "four", "five")
 //            .subscribeOn(Schedulers.newThread())
@@ -127,36 +152,96 @@ class MainActivity : AppCompatActivity() {
 //                println("test $s")
 //            }
 
+        val preferences = getSharedPreferences(preferenceName(noSauvegarde), MODE_PRIVATE)
+        val uriString: String? = preferences.getString("tree_uri", null)
+        var treeUriStr: Uri? = null;
+        if (uriString != null) {
+            val treeUri = Uri.parse(uriString)
+            treeUriStr = treeUri
+            // Utilisez treeUri pour accéder aux fichiers dans le répertoire
+            Log.info("treeUri selectionné ${noSauvegarde} : ${treeUri.toString()}")
+        }
 
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
             // Optionally, specify a URI for the directory that should be opened in
             // the system file picker when it loads.
             //putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+            //putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOCUMENTS)
+            if (treeUriStr != null) {
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, treeUriStr)
+            } else {
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, Environment.DIRECTORY_DOCUMENTS)
+            }
         }
-
+//        val tmp= Environment.DIRECTORY_DOCUMENTS
         //startActivityForResult(intent, RQS_OPEN_DOCUMENT_TREE)
-        resultLauncher2.launch(intent)
+        if(noSauvegarde==1) {
+            resultLauncher2.launch(intent)
+        } else if(noSauvegarde==2){
+            resultLauncher3.launch(intent)
+        } else if(noSauvegarde==3){
+            resultLauncher4.launch(intent)
+        }
 
     }
 
+    private fun preferenceName(no: Int): String {
+        if (no == 1) {
+            return "your_app_prefs";
+        } else {
+            return "your_app_prefs" + no;
+        }
+    }
 
-    var resultLauncher2 = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    var resultLauncher2 =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            traitement(result,1);
+        }
+
+    var resultLauncher3 =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            traitement(result,2);
+        }
+
+
+    var resultLauncher4 =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            traitement(result,3);
+        }
+
+    private fun traitement(result: ActivityResult, noSauvegarde: Int) {
         if (result.resultCode == Activity.RESULT_OK) {
             // There are no request codes
             val data: Intent? = result.data
             val data2 = result.data
             //doSomeOperations()
+            Log.info("noSauvegarde: $noSauvegarde")
             Log.info("date: $data; ${data2?.data}")
 
-            val config=getConfig()
+            val config = getConfig()
 
-            val rep=config.rep2
+            val rep = config.rep2
             Log.info("rep: $rep")
 
-            val listeFichier=listeFiles(rep,data)
+            val preferences = getSharedPreferences(preferenceName(noSauvegarde), MODE_PRIVATE)
+            val uriString: String? = preferences.getString("tree_uri", null)
+            if (uriString != null) {
+                val treeUri = Uri.parse(uriString)
+                // Utilisez treeUri pour accéder aux fichiers dans le répertoire
+                Log.info("treeUri sauvegardé : ${treeUri.toString()}")
+            }
+            if (data2?.data != null) {
+                var treeUri = data2?.data
+                val editor = preferences.edit()
+                editor.putString("tree_uri", treeUri.toString())
+                editor.apply()
+                Log.info("sauvegarde de : ${treeUri.toString()}")
+            }
+
+            val listeFichier = listeFiles(rep, data)
 
             Log.info("listeFichier not empty: ${listeFichier.isNotEmpty()}")
-            if(listeFichier.isNotEmpty()){
+            if (listeFichier.isNotEmpty()) {
                 envoieListeFichiers(listeFichier)
             }
 
@@ -195,7 +280,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun listeFiles(repertoire:String, data: Intent?): ArrayList<Files3>{
+    private fun listeFiles(repertoire: String, data: Intent?): ArrayList<Files3> {
         Log.info("listeFiles...")
         Log.info("data.data : $data;${data?.data}")
         if (data != null && data.data != null) {
@@ -203,12 +288,12 @@ class MainActivity : AppCompatActivity() {
             if (d != null) {
                 Log.info("repertoire not empty : ${repertoire.isNotEmpty()}")
                 Log.info("repertoire : ;${repertoire}!")
-                if (repertoire.isNotEmpty()||true) {
+                if (repertoire.isNotEmpty() || true) {
                     val documentFile = DocumentFile.fromTreeUri(this, d)
                     Log.info("documentFile : ${documentFile != null}")
                     if (documentFile != null) {
                         //val racine = getFile(documentFile, repertoire)
-                        val racine=documentFile
+                        val racine = documentFile
 
                         Log.info("racine=$racine")
 
@@ -232,13 +317,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun envoieListeFichiers(listeFichiers: ArrayList<Files3>) {
-        if(!listeFichiers.isEmpty()){
+        if (!listeFichiers.isEmpty()) {
 
-            val config=getConfig()
+            val config = getConfig()
 
-            if(config.serveur!=null&&config.serveur.trim().length>0) {
-
-
+            if (config.serveur != null && config.serveur.trim().length > 0) {
 
 
                 val queue = Volley.newRequestQueue(this)
@@ -250,15 +333,15 @@ class MainActivity : AppCompatActivity() {
                     Request.Method.POST, "$url/init",
                     Response.Listener { response ->
 
-                        val s=response
+                        val s = response
                         Log.info("s=$s")
-                        if(s.isNotEmpty()){
+                        if (s.isNotEmpty()) {
 
-                            val no=s.toInt(10)
-                            if(no>0){
+                            val no = s.toInt(10)
+                            if (no > 0) {
 
                                 Log.info("no=$no")
-                                traitement(no, listeFichiers, queue,url)
+                                traitement(no, listeFichiers, queue, url)
                             }
 
                         }
@@ -277,8 +360,6 @@ class MainActivity : AppCompatActivity() {
                 // suite
 
 
-
-
             }
 
         }
@@ -289,11 +370,11 @@ class MainActivity : AppCompatActivity() {
         listeFichiers: ArrayList<Files3>,
         queue: RequestQueue,
         url: String
-    ){
-        val liste =ArrayList<Files2>()
+    ) {
+        val liste = ArrayList<Files2>()
 
-        for(f in listeFichiers){
-            liste.add(Files2(f.filename,f.size,f.hash,f.type))
+        for (f in listeFichiers) {
+            liste.add(Files2(f.filename, f.size, f.hash, f.type))
         }
 
         val listFiles = ListFiles2(liste, "")
@@ -314,7 +395,7 @@ class MainActivity : AppCompatActivity() {
                 )
 
 
-                if(response.isNotEmpty()) {
+                if (response.isNotEmpty()) {
                     val s2 = Json.decodeFromString<ListFiles2>(response)
                     Log.info("s2 is $s2")
 
@@ -345,7 +426,7 @@ class MainActivity : AppCompatActivity() {
         no: Int
     ) {
 
-        val listeFilename=listeFichiers.stream().map { it->it.filename }.collect(toList())
+        val listeFilename = listeFichiers.stream().map { it -> it.filename }.collect(toList())
         Log.info("liste des fichiers à transferer: $listeFilename")
 
         for (f0 in s2.liste) {
@@ -361,7 +442,7 @@ class MainActivity : AppCompatActivity() {
                     var res = ""
                     val inputStream = contentResolver.openInputStream(f.doc.uri)
                     if (inputStream != null) {
-    //                                            val input = InputStreamReader(inputStream)
+                        //                                            val input = InputStreamReader(inputStream)
                         //                                        val reader = BufferedReader(InputStreamReader(inputStream))
                         val outputStream = ByteArrayOutputStream()
                         inputStream.use { input ->
@@ -395,9 +476,12 @@ class MainActivity : AppCompatActivity() {
 //                                    Math.min(500, response.length)
 //                                )
 //                            )
-                            Log.info("Envoi du fichier ${f.filename} : "+response.substring(
-                                0,
-                                Math.min(500, response.length)))
+                            Log.info(
+                                "Envoi du fichier ${f.filename} : " + response.substring(
+                                    0,
+                                    Math.min(500, response.length)
+                                )
+                            )
 
                         },
                         Response.ErrorListener {
@@ -416,22 +500,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun ajouteFichier(racine: DocumentFile, listeFichiers: ArrayList<Files3>, parent: String) {
+    private fun ajouteFichier(
+        racine: DocumentFile,
+        listeFichiers: ArrayList<Files3>,
+        parent: String
+    ) {
         val liste = racine.listFiles()
         Log.info("ajouteFichier liste : $racine;${liste}")
-        for(f in liste){
-            if(f.name!=null) {
-                val chemin:String
-                if (parent.isEmpty()){
-                    chemin=f.name!!
+        for (f in liste) {
+            if (f.name != null) {
+                val chemin: String
+                if (parent.isEmpty()) {
+                    chemin = f.name!!
                 } else {
-                    chemin=parent+"/"+f.name
+                    chemin = parent + "/" + f.name
                 }
-                if(f.isDirectory){
-                    ajouteFichier(f,listeFichiers,chemin)
+                if (f.isDirectory) {
+                    ajouteFichier(f, listeFichiers, chemin)
                 } else {
-                    val content=readFile(f)
-                    val hash=hashString(content,"SHA-256")
+                    val content = readFile(f)
+                    val hash = hashString(content, "SHA-256")
                     val f2 = Files3(chemin, f.length(), hash.toHex(), "F", f)
                     listeFichiers.add(f2)
                 }
@@ -461,28 +549,28 @@ class MainActivity : AppCompatActivity() {
     fun hashString(str: ByteArray, algorithm: String): ByteArray =
         MessageDigest.getInstance(algorithm).digest(str)
 
-    fun getFile3(doc:DocumentFile,path:String): DocumentFile? {
-        var liste=path.split("/");
+    fun getFile3(doc: DocumentFile, path: String): DocumentFile? {
+        var liste = path.split("/");
         Log.info("liste=$liste")
-        liste=liste.stream().filter{
-            it.length>0
+        liste = liste.stream().filter {
+            it.length > 0
         }.collect(toList())
         Log.info("liste2=$liste")
-        return getFile4(doc,liste)
+        return getFile4(doc, liste)
     }
 
-    fun getFile4(doc:DocumentFile,path:List<String>): DocumentFile?{
-        if(path.isEmpty()){
+    fun getFile4(doc: DocumentFile, path: List<String>): DocumentFile? {
+        if (path.isEmpty()) {
             return null;
         }
-        val liste=doc.listFiles()
-        for(tmp in liste){
-            if(tmp.name.equals(path.get(0))){
-                if(path.size==1){
+        val liste = doc.listFiles()
+        for (tmp in liste) {
+            if (tmp.name.equals(path.get(0))) {
+                if (path.size == 1) {
                     return tmp;
                 } else {
-                    val res= getFile2(tmp, path.subList(1, path.size))
-                    if(res!=null){
+                    val res = getFile2(tmp, path.subList(1, path.size))
+                    if (res != null) {
                         return res
                     }
                 }
@@ -688,33 +776,33 @@ class MainActivity : AppCompatActivity() {
 //        }
 //    }
 
-    fun getFile(doc:DocumentFile,path:String): DocumentFile? {
-        var liste=path.split("/");
+    fun getFile(doc: DocumentFile, path: String): DocumentFile? {
+        var liste = path.split("/");
         Log.info("liste=$liste")
-        liste=liste.stream().filter{
-            it.length>0
+        liste = liste.stream().filter {
+            it.length > 0
         }.collect(toList())
         Log.info("liste2=$liste")
-        return getFile2(doc,liste)
+        return getFile2(doc, liste)
     }
 
-    fun getFile2(doc:DocumentFile,path:List<String>): DocumentFile?{
-        if(path.isEmpty()&&false){
+    fun getFile2(doc: DocumentFile, path: List<String>): DocumentFile? {
+        if (path.isEmpty() && false) {
             return null
         }
-        val liste=doc.listFiles()
-        if (liste.isEmpty()){
+        val liste = doc.listFiles()
+        if (liste.isEmpty()) {
             return null;
         } else {
             return liste.get(0)
         }
-        for(tmp in liste){
-            if(tmp.name.equals(path[0])){
-                if(path.size==1){
+        for (tmp in liste) {
+            if (tmp.name.equals(path[0])) {
+                if (path.size == 1) {
                     return tmp
                 } else {
-                    val res= getFile2(tmp, path.subList(1, path.size))
-                    if(res!=null){
+                    val res = getFile2(tmp, path.subList(1, path.size))
+                    if (res != null) {
                         return res
                     }
                 }
@@ -739,20 +827,20 @@ class MainActivity : AppCompatActivity() {
 //
 //    }
 
-    fun getConfig(): Config{
+    fun getConfig(): Config {
 
 //        val confFile="/data/data/com.example.myapplication/test_android/config.properties";
-        val confFile= this.filesDir.path +"/test_android/config.properties"
+        val confFile = this.filesDir.path + "/test_android/config.properties"
         //val confFile=this.applicationContext.filesDir.path+"/test_android/config.properties"
         Log.info("config: $confFile")
-        val properties=Properties();
-        val input=Files.newInputStream(Paths.get(confFile));
+        val properties = Properties();
+        val input = Files.newInputStream(Paths.get(confFile));
         properties.load(input);
         input.close()
-        val serveur=properties.getProperty("serveur","")
-        val rep=properties.getProperty("rep1","")
-        val rep2=properties.getProperty("rep2","")
-        return Config(serveur,rep,rep2)
+        val serveur = properties.getProperty("serveur", "")
+        val rep = properties.getProperty("rep1", "")
+        val rep2 = properties.getProperty("rep2", "")
+        return Config(serveur, rep, rep2)
     }
 
 //    fun traitement(queue: RequestQueue, config: Config) {
@@ -889,7 +977,11 @@ class MainActivity : AppCompatActivity() {
 //        return String(res)
 //    }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_READ_EXTERNAL_STORAGE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

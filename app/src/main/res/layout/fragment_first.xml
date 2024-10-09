@@ -34,27 +34,49 @@
 
 
         <Button
-            android:id="@+id/btnIncrementByOne"
+            android:id="@+id/btnSauveUn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="addOne"
-            android:text="@string/increment_by_one"
+            android:onClick="sauveUn"
+            android:text="@string/sauve_un"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textview_first"/>
 
-        <TextView
-            android:id="@+id/txtCounter"
+        <Button
+            android:id="@+id/btnSauveDeux"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/number_zero"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display2"
-            android:textColor="#000"
+            android:onClick="sauveDeux"
+            android:text="@string/sauve_deux"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnIncrementByOne"/>
+            app:layout_constraintTop_toBottomOf="@id/btnSauveUn"/>
+
+<!--        <Button-->
+<!--            android:id="@+id/btnSauveTrois"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:onClick="sauveTrois"-->
+<!--            android:text="@string/sauve_trois"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/btnSauveDeux"/>-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/txtCounter"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/number_zero"-->
+<!--            android:textAppearance="@style/TextAppearance.AppCompat.Display2"-->
+<!--            android:textColor="#000"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/btnSauveTrois"/>-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

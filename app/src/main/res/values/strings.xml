@@ -17,6 +17,9 @@
     </string>
 
     <string name="increment_by_one">increment</string>
+    <string name="sauve_un">Sauve 1</string>
+    <string name="sauve_deux">Sauve 2</string>
+    <string name="sauve_trois">Sauve 3</string>
 
     <string name="number_zero">0</string>
     <string name="save">Sauver</string>
