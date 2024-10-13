@@ -849,9 +849,12 @@ class MainActivity : AppCompatActivity() {
         //val confFile=this.applicationContext.filesDir.path+"/test_android/config.properties"
         Log.info("config: $confFile")
         val properties = Properties();
-        val input = Files.newInputStream(Paths.get(confFile));
-        properties.load(input);
-        input.close()
+        val p=Paths.get(confFile)
+        if(Files.exists(p)) {
+            val input = Files.newInputStream(p);
+            properties.load(input);
+            input.close()
+        }
         val serveur = properties.getProperty("serveur", "")
         val rep = properties.getProperty("rep1", "")
         val rep2 = properties.getProperty("rep2", "")
